@@ -1,14 +1,13 @@
 package cipher
 
 import (
-	"crypto/des"
-
 	"github.com/Dreamacro/clash/component/shadowsocksr/encryption/stream/mode"
 	"github.com/Dreamacro/go-shadowsocks2/shadowstream"
+	"golang.org/x/crypto/blowfish"
 )
 
-func DESCFB(key []byte) (shadowstream.Cipher, error) {
-	blk, err := des.NewCipher(key)
+func BFCFB(key []byte) (shadowstream.Cipher, error) {
+	blk, err := blowfish.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}

@@ -8,14 +8,14 @@ import (
 	"strconv"
 
 	"github.com/Dreamacro/clash/component/dialer"
-	"github.com/Dreamacro/clash/component/shadowsocksr/cipher"
+	"github.com/Dreamacro/clash/component/shadowsocksr/encryption"
 	C "github.com/Dreamacro/clash/constant"
 )
 
 type ShadowSocksR struct {
 	*Base
 	server string
-	cipher cipher.Cipher
+	cipher encryption.Cipher
 
 	host string
 	port uint16
@@ -100,7 +100,7 @@ func (ssr *ShadowSocksR) MarshalJSON() ([]byte, error) {
 func NewShadowSocksR(option ShadowSocksROption) (*ShadowSocksR, error) {
 	server := net.JoinHostPort(option.Server, strconv.Itoa(option.Port))
 
-	ciph, err := cipher.PickCipher(option.Cipher, nil, option.Password)
+	ciph, err := encryption.PickCipher(option.Cipher, nil, option.Password)
 	if err != nil {
 		return nil, fmt.Errorf("ssr %s initialize error: %w", server, err)
 	}

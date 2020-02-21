@@ -1,14 +1,13 @@
 package cipher
 
 import (
-	"crypto/des"
-
 	"github.com/Dreamacro/clash/component/shadowsocksr/encryption/stream/mode"
 	"github.com/Dreamacro/go-shadowsocks2/shadowstream"
+	"golang.org/x/crypto/cast5"
 )
 
-func DESCFB(key []byte) (shadowstream.Cipher, error) {
-	blk, err := des.NewCipher(key)
+func Cast5CFB(key []byte) (shadowstream.Cipher, error) {
+	blk, err := cast5.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
