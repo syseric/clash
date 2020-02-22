@@ -118,7 +118,7 @@ type RawConfig struct {
 	ProxyProvider map[string]map[string]interface{} `yaml:"proxy-provider"`
 	Hosts         map[string]string                 `yaml:"hosts"`
 	DNS           RawDNS                            `yaml:"dns"`
-	Tun           Tun                               `yaml:"tun"`
+    Tun           Tun                               `yaml:"tun"`
 	Experimental  Experimental                      `yaml:"experimental"`
 	Proxy         []map[string]interface{}          `yaml:"Proxy"`
 	ProxyGroup    []map[string]interface{}          `yaml:"Proxy Group"`

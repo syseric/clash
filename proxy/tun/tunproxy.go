@@ -74,7 +74,7 @@ func NewTunProxy(deviceURL string) (TunAdapter, error) {
 
 	// IPv6 [::]/0
 	subnet, _ = tcpip.NewSubnet(tcpip.Address(strings.Repeat("\x00", 16)), tcpip.AddressMask(strings.Repeat("\x00", 16)))
-	ipstack.AddAddressRange(1, ipv4.ProtocolNumber, subnet)
+	ipstack.AddAddressRange(1, ipv6.ProtocolNumber, subnet)
 
 	// TCP handler
 	// maximum number of half-open tcp connection set to 1024

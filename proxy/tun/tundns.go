@@ -1,11 +1,9 @@
 package tun
 
 import (
-	"errors"
 	"fmt"
 	"net"
 
-	"github.com/Dreamacro/clash/component/resolver"
 	"github.com/Dreamacro/clash/dns"
 	"github.com/Dreamacro/clash/log"
 	"github.com/google/netstack/tcpip"
@@ -40,6 +38,7 @@ type DNSServer struct {
 	tcpip.NICID
 }
 
+// dnsEndpoint is a TransportEndpoint that will register to stack
 type dnsEndpoint struct {
 	stack.TransportEndpoint
 	stack    *stack.Stack
@@ -123,7 +122,8 @@ func (w *dnsResponseWriter) Close() error {
 }
 
 // CreateDNSServer create a dns server on given netstack
-func CreateDNSServer(s *stack.Stack, resolver resolver.Resolver, ip net.IP, port int, nicID tcpip.NICID) (*DNSServer, error) {
+func CreateDNSServer(s *stack.Stack, resolver *dns.Resolver, ip net.IP, port int, nicID tcpip.NICID) (*DNSServer, error) {
+
 	var v4 bool
 	var err error
 
@@ -142,12 +142,7 @@ func CreateDNSServer(s *stack.Stack, resolver resolver.Resolver, ip net.IP, port
 		address.Addr = ""
 	}
 
-	r, ok := resolver.(*dns.Resolver)
-	if !ok {
-		return nil, errors.New("Invalid resolver")
-	}
-
-	handler := dns.NewHandler(r)
+	handler := dns.NewHandler(resolver)
 	serverIn := &dns.Server{}
 	serverIn.SetHandler(handler)
 
@@ -192,7 +187,7 @@ func CreateDNSServer(s *stack.Stack, resolver resolver.Resolver, ip net.IP, port
 
 	server := &DNSServer{
 		Server:        serverIn,
-		resolver:      r,
+		resolver:      resolver,
 		stack:         s,
 		tcpListener:   tcpListener,
 		udpEndpoint:   endpoint,
@@ -239,7 +234,7 @@ func (t *tunAdapter) DNSListen() string {
 }
 
 // Stop stop the DNS Server on tun
-func (t *tunAdapter) ReCreateDNSServer(resolver resolver.Resolver, addr string) error {
+func (t *tunAdapter) ReCreateDNSServer(resolver *dns.Resolver, addr string) error {
 	if addr == "" && t.dnsserver == nil {
 		return nil
 	}

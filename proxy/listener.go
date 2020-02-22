@@ -7,6 +7,8 @@ import (
 
 	"github.com/Dreamacro/clash/component/resolver"
 	"github.com/Dreamacro/clash/config"
+	"github.com/Dreamacro/clash/dns"
+
 	"github.com/Dreamacro/clash/proxy/http"
 	"github.com/Dreamacro/clash/proxy/redir"
 	"github.com/Dreamacro/clash/proxy/socks"
@@ -165,7 +167,7 @@ func ReCreateTun(conf config.Tun) error {
 	if tunAdapter != nil {
 		if enable && (url == "" || url == tunAdapter.DeviceURL()) {
 			// Though we don't need to recreate tun device, we should update tun DNSServer
-			return tunAdapter.ReCreateDNSServer(resolver.DefaultResolver, conf.DNSListen)
+			return tunAdapter.ReCreateDNSServer(resolver.DefaultResolver.(*dns.Resolver), conf.DNSListen)
 		}
 		tunAdapter.Close()
 		tunAdapter = nil
@@ -179,7 +181,7 @@ func ReCreateTun(conf config.Tun) error {
 		return err
 	}
 	if resolver.DefaultResolver != nil {
-		return tunAdapter.ReCreateDNSServer(resolver.DefaultResolver, conf.DNSListen)
+		return tunAdapter.ReCreateDNSServer(resolver.DefaultResolver.(*dns.Resolver), conf.DNSListen)
 	}
 	return nil
 }

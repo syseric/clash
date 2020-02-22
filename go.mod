@@ -10,7 +10,7 @@ require (
 	github.com/go-chi/render v1.0.1
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/google/btree v1.0.0 // indirect
-	github.com/google/netstack v0.0.0-00010101000000-000000000000
+	github.com/google/netstack v0.0.0-20191123085552-55fcc16cd0eb
 	github.com/gorilla/websocket v1.4.1
 	github.com/miekg/dns v1.1.27
 	github.com/oschwald/geoip2-golang v1.4.0
