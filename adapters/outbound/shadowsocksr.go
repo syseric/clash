@@ -10,10 +10,10 @@ import (
 	"github.com/Dreamacro/clash/component/dialer"
 	C "github.com/Dreamacro/clash/constant"
 
-	SSRUtils "github.com/sh4d0wfiend/go-shadowsocksr"
-	SSRObfs "github.com/sh4d0wfiend/go-shadowsocksr/obfs"
-	SSRProtocol "github.com/sh4d0wfiend/go-shadowsocksr/protocol"
-	SSRServer "github.com/sh4d0wfiend/go-shadowsocksr/ssr"
+	SSRUtils "github.com/mzz2017/shadowsocksR"
+	SSRObfs "github.com/mzz2017/shadowsocksR/obfs"
+	SSRProtocol "github.com/mzz2017/shadowsocksR/protocol"
+	SSRServer "github.com/mzz2017/shadowsocksR/ssr"
 )
 
 type ShadowSocksR struct {
@@ -41,9 +41,9 @@ type ShadowSocksROption struct {
 	Password      string `proxy:"password"`
 	Cipher        string `proxy:"cipher"`
 	Protocol      string `proxy:"protocol"`
-	ProtocolParam string `proxy:"protocol-param"`
+	ProtocolParam string `proxy:"protocolparam"`
 	Obfs          string `proxy:"obfs"`
-	ObfsParam     string `proxy:"obfs-param"`
+	ObfsParam     string `proxy:"obfsparam"`
 
 	// TODO: Add UDP support
 	// UDP bool `proxy:"udp,omitempty"`
