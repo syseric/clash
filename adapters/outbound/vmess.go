@@ -1,11 +1,15 @@
-package adapters
+package outbound
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
 	"strings"
 
+	"github.com/Dreamacro/clash/component/dialer"
+	"github.com/Dreamacro/clash/component/resolver"
 	"github.com/Dreamacro/clash/component/vmess"
 	C "github.com/Dreamacro/clash/constant"
 )
@@ -31,24 +35,38 @@ type VmessOption struct {
 	SkipCertVerify bool              `proxy:"skip-cert-verify,omitempty"`
 }
 
-func (v *Vmess) Dial(metadata *C.Metadata) (net.Conn, error) {
-	c, err := net.DialTimeout("tcp", v.server, tcpTimeout)
+func (v *Vmess) DialContext(ctx context.Context, metadata *C.Metadata) (C.Conn, error) {
+	c, err := dialer.DialContext(ctx, "tcp", v.server)
 	if err != nil {
 		return nil, fmt.Errorf("%s connect error", v.server)
 	}
 	tcpKeepAlive(c)
 	c, err = v.client.New(c, parseVmessAddr(metadata))
-	return c, err
+	return newConn(c, v), err
 }
 
-func (v *Vmess) DialUDP(metadata *C.Metadata) (net.PacketConn, net.Addr, error) {
-	c, err := net.DialTimeout("tcp", v.server, tcpTimeout)
+func (v *Vmess) DialUDP(metadata *C.Metadata) (C.PacketConn, error) {
+	// vmess use stream-oriented udp, so clash needs a net.UDPAddr
+	if !metadata.Resolved() {
+		ip, err := resolver.ResolveIP(metadata.Host)
+		if err != nil {
+			return nil, errors.New("can't resolve ip")
+		}
+		metadata.DstIP = ip
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), tcpTimeout)
+	defer cancel()
+	c, err := dialer.DialContext(ctx, "tcp", v.server)
 	if err != nil {
-		return nil, nil, fmt.Errorf("%s connect error", v.server)
+		return nil, fmt.Errorf("%s connect error", v.server)
 	}
 	tcpKeepAlive(c)
 	c, err = v.client.New(c, parseVmessAddr(metadata))
-	return &fakeUDPConn{Conn: c}, c.LocalAddr(), err
+	if err != nil {
+		return nil, fmt.Errorf("new vmess client error: %v", err)
+	}
+	return newPacketConn(&vmessPacketConn{Conn: c, rAddr: metadata.UDPAddr()}, v), nil
 }
 
 func NewVmess(option VmessOption) (*Vmess, error) {
@@ -64,7 +82,7 @@ func NewVmess(option VmessOption) (*Vmess, error) {
 		WebSocketPath:    option.WSPath,
 		WebSocketHeaders: option.WSHeaders,
 		SkipCertVerify:   option.SkipCertVerify,
-		SessionCacahe:    getClientSessionCache(),
+		SessionCache:     getClientSessionCache(),
 	})
 	if err != nil {
 		return nil, err
@@ -74,7 +92,7 @@ func NewVmess(option VmessOption) (*Vmess, error) {
 		Base: &Base{
 			name: option.Name,
 			tp:   C.Vmess,
-			udp:  option.UDP,
+			udp:  true,
 		},
 		server: net.JoinHostPort(option.Server, strconv.Itoa(option.Port)),
 		client: client,
@@ -107,4 +125,22 @@ func parseVmessAddr(metadata *C.Metadata) *vmess.DstAddr {
 		Addr:     addr,
 		Port:     uint(port),
 	}
+}
+
+type vmessPacketConn struct {
+	net.Conn
+	rAddr net.Addr
+}
+
+func (uc *vmessPacketConn) WriteTo(b []byte, addr net.Addr) (int, error) {
+	return uc.Conn.Write(b)
+}
+
+func (uc *vmessPacketConn) WriteWithMetadata(p []byte, metadata *C.Metadata) (n int, err error) {
+	return uc.Conn.Write(p)
+}
+
+func (uc *vmessPacketConn) ReadFrom(b []byte) (int, net.Addr, error) {
+	n, err := uc.Conn.Read(b)
+	return n, uc.rAddr, err
 }

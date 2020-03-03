@@ -12,17 +12,18 @@ import (
 	"github.com/Dreamacro/clash/config"
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/hub"
-
-	log "github.com/sirupsen/logrus"
+	"github.com/Dreamacro/clash/log"
 )
 
 var (
-	version bool
-	homedir string
+	version    bool
+	homeDir    string
+	configFile string
 )
 
 func init() {
-	flag.StringVar(&homedir, "d", "", "set configuration directory")
+	flag.StringVar(&homeDir, "d", "", "set configuration directory")
+	flag.StringVar(&configFile, "f", "", "specify configuration file")
 	flag.BoolVar(&version, "v", false, "show current version of clash")
 	flag.Parse()
 }
@@ -33,23 +34,31 @@ func main() {
 		return
 	}
 
-	// enable tls 1.3 and remove when go 1.13
-	os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
-
-	if homedir != "" {
-		if !filepath.IsAbs(homedir) {
+	if homeDir != "" {
+		if !filepath.IsAbs(homeDir) {
 			currentDir, _ := os.Getwd()
-			homedir = filepath.Join(currentDir, homedir)
+			homeDir = filepath.Join(currentDir, homeDir)
 		}
-		C.SetHomeDir(homedir)
+		C.SetHomeDir(homeDir)
+	}
+
+	if configFile != "" {
+		if !filepath.IsAbs(configFile) {
+			currentDir, _ := os.Getwd()
+			configFile = filepath.Join(currentDir, configFile)
+		}
+		C.SetConfig(configFile)
+	} else {
+		configFile := filepath.Join(C.Path.HomeDir(), C.Path.Config())
+		C.SetConfig(configFile)
 	}
 
 	if err := config.Init(C.Path.HomeDir()); err != nil {
-		log.Fatalf("Initial configuration directory error: %s", err.Error())
+		log.Fatalln("Initial configuration directory error: %s", err.Error())
 	}
 
 	if err := hub.Parse(); err != nil {
-		log.Fatalf("Parse config error: %s", err.Error())
+		log.Fatalln("Parse config error: %s", err.Error())
 	}
 
 	sigCh := make(chan os.Signal, 1)

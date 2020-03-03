@@ -1,15 +1,17 @@
 package dns
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"net"
 	"time"
 
 	"github.com/Dreamacro/clash/common/cache"
 	"github.com/Dreamacro/clash/log"
-	yaml "gopkg.in/yaml.v2"
 
 	D "github.com/miekg/dns"
+	yaml "gopkg.in/yaml.v2"
 )
 
 var (
@@ -80,13 +82,14 @@ func (e EnhancedMode) String() string {
 
 func putMsgToCache(c *cache.Cache, key string, msg *D.Msg) {
 	var ttl time.Duration
-	if len(msg.Answer) != 0 {
+	switch {
+	case len(msg.Answer) != 0:
 		ttl = time.Duration(msg.Answer[0].Header().Ttl) * time.Second
-	} else if len(msg.Ns) != 0 {
+	case len(msg.Ns) != 0:
 		ttl = time.Duration(msg.Ns[0].Header().Ttl) * time.Second
-	} else if len(msg.Extra) != 0 {
+	case len(msg.Extra) != 0:
 		ttl = time.Duration(msg.Extra[0].Header().Ttl) * time.Second
-	} else {
+	default:
 		log.Debugln("[DNS] response msg error: %#v", msg)
 		return
 	}
@@ -106,4 +109,39 @@ func setMsgTTL(msg *D.Msg, ttl uint32) {
 	for _, extra := range msg.Extra {
 		extra.Header().Ttl = ttl
 	}
+}
+
+func isIPRequest(q D.Question) bool {
+	if q.Qclass == D.ClassINET && (q.Qtype == D.TypeA || q.Qtype == D.TypeAAAA) {
+		return true
+	}
+	return false
+}
+
+func transform(servers []NameServer, resolver *Resolver) []dnsClient {
+	ret := []dnsClient{}
+	for _, s := range servers {
+		if s.Net == "https" {
+			ret = append(ret, newDoHClient(s.Addr, resolver))
+			continue
+		}
+
+		host, port, _ := net.SplitHostPort(s.Addr)
+		ret = append(ret, &client{
+			Client: &D.Client{
+				Net: s.Net,
+				TLSConfig: &tls.Config{
+					ClientSessionCache: globalSessionCache,
+					// alpn identifier, see https://tools.ietf.org/html/draft-hoffman-dprive-dns-tls-alpn-00#page-6
+					NextProtos: []string{"dns"},
+				},
+				UDPSize: 4096,
+				Timeout: 5 * time.Second,
+			},
+			port: port,
+			host: host,
+			r:    resolver,
+		})
+	}
+	return ret
 }

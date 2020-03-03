@@ -1,20 +1,22 @@
 module github.com/Dreamacro/clash
 
+go 1.13
+
 require (
-	github.com/Dreamacro/go-shadowsocks2 v0.1.3
+	github.com/Dreamacro/go-shadowsocks2 v0.1.5
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/go-chi/chi v4.0.2+incompatible
+	github.com/go-chi/chi v4.0.3+incompatible
 	github.com/go-chi/cors v1.0.0
 	github.com/go-chi/render v1.0.1
 	github.com/gofrs/uuid v3.2.0+incompatible
-	github.com/gorilla/websocket v1.4.0
-	github.com/miekg/dns v1.1.9
-	github.com/oschwald/geoip2-golang v1.2.1
-	github.com/oschwald/maxminddb-golang v1.3.0 // indirect
-	github.com/sirupsen/logrus v1.4.1
-	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734
-	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
-	golang.org/x/sync v0.0.0-20181108010431-42b317875d0f // indirect
+	github.com/gorilla/websocket v1.4.1
+	github.com/miekg/dns v1.1.27
+	github.com/oschwald/geoip2-golang v1.4.0
+	github.com/sirupsen/logrus v1.4.2
+	github.com/stretchr/testify v1.4.0
+	golang.org/x/crypto v0.0.0-20200214034016-1d94cc7ab1c6
+	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	gopkg.in/eapache/channels.v1 v1.1.0
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.2.8
 )
