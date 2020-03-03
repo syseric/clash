@@ -32,8 +32,8 @@ jobs:
           NAME: clash
           BINDIR: bin
         run: |
-	make -j linux-amd64
-	make -j windows-amd64
+          make -j linux-amd64
+          make -j windows-amd64
 
       - name: Upload Release
         uses: softprops/action-gh-release@v1
